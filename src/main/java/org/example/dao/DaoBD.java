@@ -18,8 +18,8 @@ public class DaoBD {
 
 	public static void crearBBDD(String ruta) {
 		System.out.println(ruta);
-		conection= ConectorBD.getConnection();
-		File archivoCSV=new File(ruta);
+		conection = ConectorBD.getConnection();
+		File archivoCSV = new File(ruta);
 
 		String crearSchema = "DROP DATABASE IF EXISTS `olimpiadas`;";
 		String crearDB = "CREATE DATABASE IF NOT EXISTS `olimpiadas` DEFAULT CHARACTER SET latin1 COLLATE latin1_spanish_ci;";
@@ -27,6 +27,7 @@ public class DaoBD {
 		String setSqlMode = "SET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";";
 		String setAutocommit = "SET AUTOCOMMIT = 0;";
 		String startTransaction = "START TRANSACTION;";
+
 
 		String crearTablaDeporte="CREATE TABLE `Deporte` (\r\n"
 				+ "	`id_deporte` int(11) NOT NULL AUTO_INCREMENT,\r\n"
@@ -75,59 +76,63 @@ public class DaoBD {
 				+ "    CONSTRAINT `FK_Participacion_Equipo` FOREIGN KEY (`id_equipo`) REFERENCES `Equipo` (`id_equipo`),\r\n"
 				+ "    CONSTRAINT `FK_Participacion_Evento` FOREIGN KEY (`id_evento`) REFERENCES `Evento` (`id_evento`)\r\n"
 				+ ") ENGINE = InnoDB DEFAULT CHARACTER SET = latin1 COLLATE = latin1_spanish_ci;";
-		 try {
 
-			 ejecutarUpdate(crearSchema);
-			 ejecutarUpdate(crearDB);
-			 ejecutarUpdate(usarDB);
-			 ejecutarUpdate(setSqlMode);
-			 ejecutarUpdate(setAutocommit);
-			 ejecutarUpdate(startTransaction);
+		try {
+			ejecutarUpdate(crearSchema);
+			ejecutarUpdate(crearDB);
+			ejecutarUpdate(usarDB);
+			ejecutarUpdate(setSqlMode);
+			ejecutarUpdate(setAutocommit);
+			ejecutarUpdate(startTransaction);
 			ejecutarUpdate(crearTablaDeporte);
 			ejecutarUpdate(crearTablaDeportista);
 			ejecutarUpdate(crearTablaEquipo);
 			ejecutarUpdate(crearTablaOlimpiada);
 			ejecutarUpdate(crearTablaEvento);
 			ejecutarUpdate(crearTablaParticipacion);
-			if(archivoCSV.isFile()&&ruta.endsWith(".csv")) {
-				try(BufferedReader br=new BufferedReader(new FileReader(archivoCSV))){
-					String linea=br.readLine();
-					//Cambiar el csv a mano para quitar todas las "
-					if(linea.equals("ID,Name,Sex,Age,Height,Weight,Team,NOC,Games,Year,Season,City,Sport,Event,Medal")) {
-						linea=br.readLine();
-						while(linea!=null) {
-							String leido[]=linea.split(",");
-							if(leido[3].equals("NA")){leido[3]="-1";}
-							if(leido[4].equals("NA")){leido[4]="-1";}
-							if(leido[5].equals("NA")){leido[5]="-1";}
-							leido[5]=Math.round(Float.parseFloat(leido[5]))+"";
-							if(DaoDeportista.conseguirIdDeportista(leido[1], leido[2].charAt(0), Float.parseFloat(leido[5]), Integer.parseInt(leido[4]))==null){
+
+			if (archivoCSV.isFile() && ruta.endsWith(".csv")) {
+				try (BufferedReader br = new BufferedReader(new FileReader(archivoCSV))) {
+					String linea = br.readLine();
+					// Cambiar el csv a mano para quitar todas las "
+					if (linea.equals("ID,Name,Sex,Age,Height,Weight,Team,NOC,Games,Year,Season,City,Sport,Event,Medal")) {
+						linea = br.readLine();
+						while (linea != null) {
+							String[] leido = linea.split(",");
+							if (leido[3].equals("NA")) { leido[3] = "-1"; }
+							if (leido[4].equals("NA")) { leido[4] = "-1"; }
+							if (leido[5].equals("NA")) { leido[5] = "-1"; }
+							leido[5] = Math.round(Float.parseFloat(leido[5])) + "";
+
+							// Aquí se verifican los datos y se insertan si no existen
+							if (DaoDeportista.conseguirIdDeportista(leido[1], leido[2].charAt(0), Float.parseFloat(leido[5]), Integer.parseInt(leido[4])) == null) {
 								DaoDeportista.aniadirDeportista(leido[1], leido[2].charAt(0), Float.parseFloat(leido[5]), Integer.parseInt(leido[4]));
 							}
-							if(DaoDeporte.conseguirIdDeporte(leido[12])==null) {
+							if (DaoDeporte.conseguirIdDeporte(leido[12]) == null) {
 								DaoDeporte.aniadirDeporte(leido[12]);
 							}
-							if(DaoEquipo.conseguirIdEquipo(leido[6], leido[7])==null) {
+							if (DaoEquipo.conseguirIdEquipo(leido[6], leido[7]) == null) {
 								DaoEquipo.aniadirEquipo(leido[6], leido[7]);
 							}
-							if(DaoOlimpiada.conseguirIdOlimpiada(leido[8],Integer.parseInt(leido[9]), leido[10], leido[11])==null) {
-								DaoOlimpiada.aniadirOlimpiada(leido[8],Integer.parseInt(leido[9]), leido[10], leido[11]);
+							if (DaoOlimpiada.conseguirIdOlimpiada(leido[8], Integer.parseInt(leido[9]), leido[10], leido[11]) == null) {
+								DaoOlimpiada.aniadirOlimpiada(leido[8], Integer.parseInt(leido[9]), leido[10], leido[11]);
 							}
-							if(DaoEvento.conseguirIdEvento(leido[13], Integer.parseInt(DaoOlimpiada.conseguirIdOlimpiada(leido[8],Integer.parseInt(leido[9]), leido[10], leido[11])),
-									Integer.parseInt(DaoDeporte.conseguirIdDeporte(leido[12])))==null){
-								DaoEvento.aniadirEvento(leido[13], Integer.parseInt(DaoOlimpiada.conseguirIdOlimpiada(leido[8],Integer.parseInt(leido[9]), leido[10], leido[11])),Integer.parseInt(DaoDeporte.conseguirIdDeporte(leido[12])));
+							if (DaoEvento.conseguirIdEvento(leido[13], Integer.parseInt(DaoOlimpiada.conseguirIdOlimpiada(leido[8], Integer.parseInt(leido[9]), leido[10], leido[11])),
+									Integer.parseInt(DaoDeporte.conseguirIdDeporte(leido[12]))) == null) {
+								DaoEvento.aniadirEvento(leido[13], Integer.parseInt(DaoOlimpiada.conseguirIdOlimpiada(leido[8], Integer.parseInt(leido[9]), leido[10], leido[11])),
+										Integer.parseInt(DaoDeporte.conseguirIdDeporte(leido[12])));
 							}
-							if(!DaoParticipacion.existeIdParticipacion(Integer.parseInt(DaoDeportista.conseguirIdDeportista(leido[1], leido[2].charAt(0), Float.parseFloat(leido[5]),Integer.parseInt(leido[4]))),
-									Integer.parseInt(DaoEvento.conseguirIdEvento(leido[13],
-											Integer.parseInt(DaoOlimpiada.conseguirIdOlimpiada(leido[8],Integer.parseInt(leido[9]), leido[10], leido[11])),
-											Integer.parseInt(DaoDeporte.conseguirIdDeporte(leido[12])))))) {
-								DaoParticipacion.aniadirParticipacion(Integer.parseInt(DaoDeportista.conseguirIdDeportista(leido[1], leido[2].charAt(0), Float.parseFloat(leido[5]),
-										Integer.parseInt(leido[4]))),Integer.parseInt(DaoEvento.conseguirIdEvento(leido[13],
-												Integer.parseInt(DaoOlimpiada.conseguirIdOlimpiada(leido[8],Integer.parseInt(leido[9]), leido[10], leido[11])),
+							if (!DaoParticipacion.existeIdParticipacion(Integer.parseInt(DaoDeportista.conseguirIdDeportista(leido[1], leido[2].charAt(0),
+									Float.parseFloat(leido[5]), Integer.parseInt(leido[4]))), Integer.parseInt(DaoEvento.conseguirIdEvento(leido[13],
+									Integer.parseInt(DaoOlimpiada.conseguirIdOlimpiada(leido[8], Integer.parseInt(leido[9]), leido[10], leido[11])),
+									Integer.parseInt(DaoDeporte.conseguirIdDeporte(leido[12])))))) {
+								DaoParticipacion.aniadirParticipacion(Integer.parseInt(DaoDeportista.conseguirIdDeportista(leido[1], leido[2].charAt(0),
+												Float.parseFloat(leido[5]), Integer.parseInt(leido[4]))), Integer.parseInt(DaoEvento.conseguirIdEvento(leido[13],
+												Integer.parseInt(DaoOlimpiada.conseguirIdOlimpiada(leido[8], Integer.parseInt(leido[9]), leido[10], leido[11])),
 												Integer.parseInt(DaoDeporte.conseguirIdDeporte(leido[12])))),
 										Integer.parseInt(DaoEquipo.conseguirIdEquipo(leido[6], leido[7])), Integer.parseInt(leido[3]), leido[14]);
 							}
-							linea=br.readLine();
+							linea = br.readLine();
 						}
 						System.out.println("La carga de la información se ha realizado correctamente");
 					}
@@ -136,14 +141,14 @@ public class DaoBD {
 				} catch (IOException e) {
 					System.out.println("Ha ocurrido algún error en la carga");
 				}
-			}
-			else {
-				System.out.println("El archivo csv no existe");
+			} else {
+				System.out.println("El archivo csv no existe o no es válido");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
+
 
 	static void ejecutarUpdate(String sentencia) throws SQLException {
 		conection=ConectorBD.getConnection();
